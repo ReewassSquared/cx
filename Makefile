@@ -88,8 +88,20 @@ build: configure build-parser ## Build CX from sources
 	chmod +x $(GOPATH)/bin/cx
 
 build-full: install-full configure build-parser ## Build CX from sources with all build tags
-	go build -tags="base cxfx" -i -o $(GOPATH)/bin/cx github.com/SkycoinProject/cx/cxgo/
+	go build -tags="base cxfx cxtweet" -i -o $(GOPATH)/bin/cx github.com/SkycoinProject/cx/cxgo/
 	chmod +x $(GOPATH)/bin/cx
+
+clean-db:
+	rm -f $(GOPATH)/src/github.com/SkycoinProject/cx/cxdb.db
+
+build-full-client: configure build-parser clean-db ## Build CX from sources with all build tags
+	go build -tags="base cxtweet cxtweetclient" -i -o $(GOPATH)/bin/cx github.com/SkycoinProject/cx/cxgo/
+	chmod +x $(GOPATH)/bin/cx
+
+
+build-full-public: configure build-parser clean-db ## Build CX from sources with all build tags
+	go build -tags="base cxtweet cxtweetpublic" -i -o $(GOPATH)/bin/cxpublic github.com/SkycoinProject/cx/cxgo/
+	chmod +x $(GOPATH)/bin/cxpublic
 
 build-android: install-full install-mobile configure build-parser
 #go get github.com/SkycoinProject/gltext
@@ -156,7 +168,7 @@ update-golden-files: build ## Update golden files used in CX test suite
 	ls -1 tests/ | grep '.cx$$' | while read -r NAME; do echo "Processing $$NAME"; cx -t -co tests/testdata/tokens/$${NAME}.txt tests/$$NAME || true ; done
 
 check-golden-files: update-golden-files ## Ensure golden files are up to date
-	if [ "$(shell git diff tests/testdata | wc -l | tr -d ' ')" != "0" ] ; then echo 'Changes detected. Goden files not up to date' ; exit 2 ; fi
+	if [ "$(shell git diff tests/testdata | wc -l | tr -d ' ')" != "0" ] ; then echo 'Changes detected. Golden files not up to date' ; exit 2 ; fi
 
 check: check-golden-files test ## Perform self-tests
 
